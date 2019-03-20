@@ -10,7 +10,12 @@ router.get('/',(req,res)=>{
 })
 //json rendering of All members
 router.get('/api',(req,res)=>{
-    res.json(members);
+    //res.json(members);
+    userDB.find()
+    .exec()
+    .then(doc=>{
+        res.json(doc);
+    });
 })
 //Add User in MongoDB
 router.post('/api/save',(req,res)=>{
@@ -22,7 +27,7 @@ router.post('/api/save',(req,res)=>{
     staffStatus:req.body.staffStatus
     });
     userModel.save().then(result => {
-        console.log(result.username);
+        res.json(result)
     }).catch(err => console.log('Error Ocured ' + err));
 
 })
