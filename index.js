@@ -4,7 +4,7 @@ var bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const path = require("path");
 const app = express();
-mongoose.connect('mongodb+srv://root:toor@clgdb-f31cs.mongodb.net/test?retryWrites=true',{ useNewUrlParser: true });
+mongoose.connect('mongodb+srv://root:toor@clgdb-f31cs.mongodb.net/users?retryWrites=true',{ useNewUrlParser: true });
 app.use(bodyParser.urlencoded({
     extended: false
 }));

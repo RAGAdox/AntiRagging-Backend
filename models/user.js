@@ -15,6 +15,10 @@ const usersSchema=new mongoose.Schema({
       password: { 
         type: String,
         required: true
+      },
+      staffStatus:{
+        type:Boolean,
+        required:true
       }
 });
 const users=mongoose.model('users',usersSchema);

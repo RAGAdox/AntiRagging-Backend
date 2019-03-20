@@ -1,8 +1,9 @@
-const express = require("express");
 const bodyParser=require("body-parser");
 const members=require('./Members.js');
 const uuid=require('uuid');
 const router = require('express-promise-router')();
+const mongoose=require('mongoose');
+const userDB=require('../models/user');
 router.use(bodyParser.urlencoded({ extended: false }));
 router.get('/',(req,res)=>{
     res.send("Auth Router");
@@ -11,20 +12,19 @@ router.get('/',(req,res)=>{
 router.get('/api',(req,res)=>{
     res.json(members);
 })
-//json add and render all members
+//Add User in MongoDB
 router.post('/api/save',(req,res)=>{
-    const newMember={
-        id:uuid.v4(),
-        name:req.body.name,
-        dept:req.body.dept
-    }
-    if(!newMember.name||!newMember.dept)
-    {
-        return res.status(400).json({msg:`please include a name and email`});
-    }
-    members.push(newMember);
-    //res.json(members);
-    res.redirect('/auth/api');
+   const userModel = new userDB({
+    _id: new mongoose.Types.ObjectId(),
+    email: req.body.email,
+    username:req.body.username,
+    password:req.body.password,
+    staffStatus:req.body.staffStatus
+    });
+    userModel.save().then(result => {
+        console.log(result.username);
+    }).catch(err => console.log('Error Ocured ' + err));
+
 })
 
 //json delete a member using name and render all members
