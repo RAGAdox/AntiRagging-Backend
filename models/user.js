@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt=require('bcrypt-nodejs')
 const usersSchema=new mongoose.Schema({
     _id:mongoose.Schema.Types.ObjectId,
     email: {
@@ -21,5 +22,11 @@ const usersSchema=new mongoose.Schema({
         required:true
       }
 });
+usersSchema.methods.hashPassword=function(password){
+  return bcrypt.hashSync(password,bcrypt.genSaltSync(10))
+};
+usersSchema.methods.comparePassword=function(password,hash){
+  return bcrypt.compareSync(password,hash);
+};
 const users=mongoose.model('users',usersSchema);
 module.exports=users;
