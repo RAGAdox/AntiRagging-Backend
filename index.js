@@ -6,6 +6,7 @@ const session=require("express-session");
 const passport=require("passport")
 const path = require("path");
 const passAuth=require('./routes/passAuth')(passport);
+require('./passport')(passport);
 const app = express();
 mongoose.connect('mongodb+srv://root:toor@clgdb-f31cs.mongodb.net/users?retryWrites=true',{ useNewUrlParser: true });
 app.use(bodyParser.urlencoded({
@@ -15,12 +16,14 @@ app.engine("handlebars", exphbs({
     defaultLayout: "main"
 }));
 app.set("view engine", "handlebars");
+app.use(passport.initialize())
+app.use(passport.session())
 app.use('/', require('./routes/mainRouter.js'));
 app.use('/passAuth',passAuth);
 app.use(session({
     secret:'thesecret',
     saveUninitialized:false,
-    resave:false
+    resave:false,
 }))
 const PORT = process.env.PORT || 2000;
 app.listen(PORT, () => console.log("Server Started at post : " + PORT));

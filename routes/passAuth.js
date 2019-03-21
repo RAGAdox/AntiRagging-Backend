@@ -1,4 +1,5 @@
 const express=require('express');
+var session = require('express-session')
 const mongoose=require('mongoose');
 const userDB=require('../models/user');
 
@@ -37,5 +38,17 @@ module.exports=function(passport)
             }
         })
     });
+    router.get('/profile',(req,res)=>{
+        res.send(req.session)
+        console.log("current user "+req.session);
+        
+    })
+
+    router.post('/login',passport.authenticate('local',{
+        failureRedirect:'/passAuth/login',
+        successRedirect:'/passAuth/profile'
+    }),(req,res)=>{
+        res.send('Hey')
+    })
     return router;
 }
