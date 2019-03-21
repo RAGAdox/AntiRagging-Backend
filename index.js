@@ -15,15 +15,15 @@ app.use(bodyParser.urlencoded({
 app.engine("handlebars", exphbs({
     defaultLayout: "main"
 }));
-app.set("view engine", "handlebars");
-app.use(passport.initialize())
-app.use(passport.session())
-app.use('/', require('./routes/mainRouter.js'));
-app.use('/passAuth',passAuth);
 app.use(session({
     secret:'thesecret',
     saveUninitialized:false,
     resave:false,
 }))
+app.set("view engine", "handlebars");
+app.use(passport.initialize())
+app.use(passport.session())
+app.use('/', require('./routes/mainRouter.js'));
+app.use('/passAuth',passAuth);
 const PORT = process.env.PORT || 2000;
 app.listen(PORT, () => console.log("Server Started at post : " + PORT));

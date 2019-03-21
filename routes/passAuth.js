@@ -4,7 +4,6 @@ const mongoose=require('mongoose');
 const userDB=require('../models/user');
 
 var router=express.Router();
-
 module.exports=function(passport)
 {
     router.post('/signup',(req,res)=>{
@@ -39,9 +38,12 @@ module.exports=function(passport)
         })
     });
     router.get('/profile',(req,res)=>{
-        res.send(req.session)
-        console.log("current user "+req.session);
-        
+        if(req.session.passport)
+            res.send(req.session.passport)
+        else{
+            res.send("Login First")
+            //res.redirect('/login');
+        }
     })
 
     router.post('/login',passport.authenticate('local',{
