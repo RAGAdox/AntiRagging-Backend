@@ -18,7 +18,8 @@ module.exports=function(passport){
                     if(valid){
                         done(null,{
                             username:doc.username,
-                            password:doc.password
+                            password:doc.password,
+                            staffStatus:doc.staffStatus
                         })
                     }
                     else{
