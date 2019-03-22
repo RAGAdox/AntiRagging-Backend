@@ -38,6 +38,7 @@ module.exports=function(passport)
         })
     });
     router.get('/profile',(req,res)=>{
+       
         if(req.session.passport)
             res.send(req.session.passport)
         else{

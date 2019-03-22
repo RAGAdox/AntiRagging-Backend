@@ -3,6 +3,7 @@ const members=require('./Members.js');
 const router = require('express-promise-router')();
 const mongoose=require('mongoose');
 const userDB=require('../models/user');
+const verifyToken=require('../middleware/token')
 router.use(bodyParser.urlencoded({ extended: false }));
 router.get('/',(req,res)=>{
     res.send("Auth Router");

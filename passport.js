@@ -1,5 +1,6 @@
 //passport configuration
 const localStrategy=require('passport-local').Strategy;
+const jwt=require('jsonwebtoken');
 const userDB=require('./models/user');
 module.exports=function(passport){
     passport.serializeUser((user,done)=>{
