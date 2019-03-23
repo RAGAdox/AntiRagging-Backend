@@ -2,7 +2,8 @@ const express=require('express');
 var session = require('express-session')
 const mongoose=require('mongoose');
 const userDB=require('../models/user');
-
+let jwt = require('jsonwebtoken');
+const token=require('../middleware/token')
 var router=express.Router();
 module.exports=function(passport)
 {
@@ -37,21 +38,30 @@ module.exports=function(passport)
             }
         })
     });
-    router.get('/profile',(req,res)=>{
-       
-        if(req.session.passport)
-            res.send(req.session.passport)
-        else{
-            res.send("Login First")
-            //res.redirect('/login');
-        }
+    router.get('/profile',token.checkToken,(req,res)=>{
+        res.json({
+            success: true,
+            message: 'Index page'
+          });
+        
     })
 
     router.post('/login',passport.authenticate('local',{
-        failureRedirect:'/passAuth/login',
-        successRedirect:'/passAuth/profile'
+        failureRedirect:'/passAuth/login'
+        //successRedirect:'/passAuth/profile'
     }),(req,res)=>{
-        res.send('Hey')
+        let token = jwt.sign({username: req.body.username},
+            process.env.SECRET_OR_KEY,
+            { expiresIn: '24h' // expires in 24 hours
+            }
+          );
+          // return the JWT token for the future API calls
+          res.json({
+            success: true,
+            message: 'Authentication successful!',
+            token: token
+          });
+       // console.log(res)
     })
     return router;
 }
