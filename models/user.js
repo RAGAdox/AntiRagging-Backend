@@ -6,6 +6,10 @@ const usersSchema=new mongoose.Schema({
         type: String,
         required: true
       },
+      name:{
+        type:String,
+        required:true
+      },
       username:{
         type:String,
         required:true,
@@ -17,6 +21,18 @@ const usersSchema=new mongoose.Schema({
       },
       staffStatus:{
         type:Boolean,
+        required:true
+      },
+      presentAddress:{
+        type:String,
+        required:true
+      },
+      collegeName:{
+        type:String,
+        required:true
+      },
+      phoneNumber:{
+        type:String,
         required:true
       }
 });
