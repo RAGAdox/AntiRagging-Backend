@@ -12,6 +12,14 @@ const complainSchema=new mongoose.Schema({
     ragger:{
         type:String,
         required:false
+    },
+    locationLatitude:{
+        type:String,
+        required:false
+    },
+    locationLongitude:{
+        type:String,
+        required:false
     }
 });
 const complaint=mongoose.model('complain',complainSchema);
