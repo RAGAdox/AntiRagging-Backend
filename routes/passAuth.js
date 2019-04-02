@@ -125,6 +125,8 @@ module.exports=function(passport)
             newComplain.ragger=req.body.ragger
         else
             newComplain.ragger=''
+        newComplain.locationLongitude=req.body.locationLongitude
+        newComplain.locationLatitude=req.body.locationLatitude
         newComplain.save(function(err,complain){
             if(err)
                 res.status(500).json({success:false,error:err,message:'Server Error Occured'})
