@@ -2,6 +2,7 @@ const express=require('express');
 var session = require('express-session')
 const mongoose=require('mongoose');
 const userDB=require('../models/user');
+const complainDB=require('../models/complain.js')
 let jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator/check');
 const token=require('../middleware/token')
@@ -115,7 +116,43 @@ module.exports=function(passport)
             }
         })*/        
     })
-    
+    router.post('/complain',token.checkToken,(req,res)=>{
+        var newComplain=new complainDB()
+        newComplain._id=new mongoose.Types.ObjectId()
+        newComplain.username=req.headers['username']
+        newComplain.name=req.headers['username']
+        if(req.body.ragger)
+            newComplain.ragger=req.body.ragger
+        else
+            newComplain.ragger=''
+        newComplain.save(function(err,complain){
+            if(err)
+                res.status(500).json({success:false,error:err,message:'Server Error Occured'})
+            else{
+                res.json({success:true,complain:complain,message:'Complain Registered'})
+            }
+        })
+    })
+    router.post('/help',token.checkToken,(req,res)=>{
+        var newComplain=new complainDB()
+        newComplain._id=new mongoose.Types.ObjectId()
+        newComplain.username=req.headers['username']
+        if(req.body.name)
+            newComplain.name=req.body.name
+        else
+            newComplain.name=''
+        if(req.body.ragger)
+            newComplain.ragger=req.body.ragger
+        else
+            newComplain.ragger=''
+        newComplain.save(function(err,complain){
+            if(err)
+                res.status(500).json({success:false,error:err,message:'Server Error Occured'})
+            else{
+                res.json({success:true,complain:complain,message:'Complain Registered'})
+            }
+        })
+    })
     router.post('/login',(req,res,next)=>{
         passport.authenticate('login-user',{session:false},(err,user,info)=>{
             if(err||!user){
