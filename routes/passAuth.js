@@ -116,17 +116,24 @@ module.exports=function(passport)
             }
         })*/        
     })
+    router.get('/checktoken',token.checkToken,(req,res)=>{
+        res.status(200).json({success:true,message:'Login Verified'})
+    })
     router.post('/complain',token.checkToken,(req,res)=>{
         var newComplain=new complainDB()
         newComplain._id=new mongoose.Types.ObjectId()
         newComplain.username=req.headers['username']
-        newComplain.name=req.headers['username']
+        if(req.body.name)   
+            newComplain.name=req.body.name
+        else
+            newComplain.name=req.headers['username']
         if(req.body.ragger)
             newComplain.ragger=req.body.ragger
         else
             newComplain.ragger=''
         newComplain.locationLongitude=req.body.locationLongitude
         newComplain.locationLatitude=req.body.locationLatitude
+        console.log(newComplain)
         newComplain.save(function(err,complain){
             if(err)
                 res.status(500).json({success:false,error:err,message:'Server Error Occured'})
