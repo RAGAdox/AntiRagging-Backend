@@ -32,7 +32,7 @@ module.exports=function(passport)
             name=req.body.name,
             phoneNumber=req.body.phoneNumber;
         userDB.findOne({username:username},(err,doc)=>{
-            if(err){res.status(500).json({success:false,error:err})}
+            if(err){res.status(500).json({success:false,error:err,message:'Some Error Occured'})}
             else{
                 if(doc){
                     res.status(500).json({success:false,message:'Username Already Taken'})
@@ -50,9 +50,9 @@ module.exports=function(passport)
                     newUser.name=name;
                     newUser.save(function(err,user){
                         if(err)
-                            res.status(500).json({success:false,error:err})
+                            res.status(500).json({success:false,error:err,message:'Some Error Occured while signing up'})
                         else{
-                            res.json({success:true,user:user})
+                            res.json({success:true,user:user,message:'Signed Up successfully'})
                         }
                     })
                 }
@@ -161,6 +161,9 @@ module.exports=function(passport)
                 res.json({success:true,complain:complain,message:'Complain Registered'})
             }
         })
+    })
+    router.get('/login',(req,res)=>{
+        res.render('login')
     })
     router.post('/login',(req,res,next)=>{
         passport.authenticate('login-user',{session:false},(err,user,info)=>{
