@@ -20,7 +20,11 @@ const complainSchema=new mongoose.Schema({
     locationLongitude:{
         type:String,
         required:false
+    },
+    attendedStatus:{
+        type:Boolean,
+        default:false
     }
-});
+},{ timestamps: { createdAt: 'created_at' } });
 const complaint=mongoose.model('complain',complainSchema);
 module.exports=complaint;
