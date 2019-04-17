@@ -1,58 +1,93 @@
 const express = require("express");
+const session = require("express-session");
+const cookieParser=require('cookie-parser')
 const complaintsDB = require("../models/complain");
+const userDB=require('../models/user')
+const sessionChecker=require('../middleware/sessionChecker')
 var router = express.Router();
-router.use("/auth", require("./Auth.js"));
+router.use(
+  session({
+    key: "user_sid",
+    secret: "somerandonstuffs",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      expires: 600000
+    }
+  })
+);
+router.use(cookieParser());
+
+
 router.get("/", (req, res) => {
-  let homeRes = { msg: "Requested Home" };
-  res.json(homeRes);
+  res.redirect('/complaints')
 });
-router.get("/login", (req, res) => {
+router.get("/login", (req, res,next) => {
   res.render("login");
 });
-router.post("/login", (req, res, next) => {
-  passport.authenticate("login-user", { session: false }, (err, user, info) => {
-    if (err || !user) {
-      res.json(info);
-    } else {
-      req.login(
-        { username: user.username, password: user.password },
-        { session: false },
-        err => {
-          if (err) {
-            res.json({
-              success: false,
-              message: "Server Error"
-            });
-          }
-          let token = jwt.sign(
-            { username: req.body.username },
-            process.env.SECRET_OR_KEY,
-            {
-              expiresIn: "24h" // expires in 24 hours
-            }
-          );
-          // return the JWT token for the future API calls
-          res.json({
-            success: true,
-            message: "Authentication successful!",
-            token: token
-          });
+router.post("/login", (req, res,next) => {
+console.log(req.body.username)
+
+  userDB.findOne({username:req.body.username},(err,userVal)=>{
+      if(err){
+          res.send('DATABASE ERROR OCCURED')
+      }
+      else if(!userVal){
+          res.send('User Not Found')
+      }
+      else if(userVal){
+        if(!userVal.comparePassword(req.body.password,userVal.password)){
+            res.send('Invalid Credentials')
         }
-      );
-    }
-  })(req, res, next);
+        else{
+            req.session.user = userVal
+            let userCookie = req.cookies.user;
+            if(userCookie===undefined)
+            {
+                res.cookie('user',userVal, { maxAge: 900000, httpOnly: true });
+            }
+           
+            //next()
+
+            res.redirect('/complaints')
+        }
+      }
+    })
 });
-router.get("/complaints", (req, res) => {
+router.get('/check',(req,res,next)=>{
+    if (req.session.user || req.cookies.user) {
+        res.send('Logged In')
+      } else {
+        res.redirect('/login')
+      }
+})
+
+router.get("/complaints",sessionChecker, (req, res) => {
+  console.log(req);
   complaintsDB
     .find()
     .exec()
     .then(doc => {
-      console.log(doc[0].username);
-      res.render("complaints",{
-      doc:doc,
-      }
-      );
+      res.render("complaints", {
+        doc: doc
+      });
     });
-  
+});
+router.post("/statusUpdate", (req, res) => {
+  console.log(req.body.attended);
+  console.log(req.query.id);
+  complaintsDB.findOneAndUpdate(
+    { _id: req.query.id },
+    { attendedStatus: true },
+    (err, doc) => {
+      if (err) {
+        res.send("some database error occured");
+      } else if (!doc) {
+        res.send("document not found");
+      } else {
+        res.redirect("/complaints");
+      }
+    }
+  );
 });
 module.exports = router;

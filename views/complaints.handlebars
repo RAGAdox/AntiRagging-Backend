@@ -1,26 +1,35 @@
 <table class="table">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Username</th>
-      <th scope="col">Student Being Ragged</th>
-      <th scope="col">Ragger</th>
-      <th scope="col">Location</th>
-      <th scope="col">Time of Complain</th>
-      <th scope="col">Attended Status</th>
-    </tr>
-  </thead>
-  <tbody>
-      {{#each doc}}
-    <tr>
-      <th scope="row"></th>
-      <td>{{this.username}}</td>
-      <td>{{this.name}}</td>
-      <td>{{this.ragger}}</td>
-      <td>{{this.locationLongitude}}+{{this.locationLatitude}}</td>
-      <td>{{this.created_at}}</td>
-      <td><input type="checkbox" name="attended">{{this.attendedStatus}}</td>
-    </tr>
-    {{/each}}
-  </tbody>
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Username</th>
+            <th scope="col">Student Being Ragged</th>
+            <th scope="col">Ragger</th>
+            <th scope="col">Location</th>
+            <th scope="col">Time of Complain</th>
+            <th scope="col">Attended Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each doc}}
+        <tr>
+            <th scope="row"></th>
+            <td>{{this.username}}</td>
+            <td>{{this.name}}</td>
+            <td>{{this.ragger}}</td>
+            <td><a href='https://www.google.com/maps/search/?api=1&query={{this.locationLatitude}},{{this.locationLongitude}}' target="_blank">Location</a></td>
+            <td>{{this.created_at}}</td>
+            <td>
+                <form action="/statusUpdate/?id={{this._id}}" method="POST">
+                    <input type="checkbox" name="attended" value="{{this.attendedStatus}}" id='{{this._id}}'
+                        class='status' onchange="this.form.submit()">
+                </form>{{this.attendedStatus}}
+            </td>
+            <script>document.getElementById('{{this._id}}').checked={{this.attendedStatus}}
+                if({{this.attendedStatus}})
+                    document.getElementById('{{this._id}}').disabled = true;
+            </script>
+        </tr>
+        {{/each}}
+    </tbody>
 </table>
