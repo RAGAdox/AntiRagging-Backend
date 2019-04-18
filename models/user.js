@@ -23,13 +23,16 @@ const usersSchema=new mongoose.Schema({
         type:Boolean,
         required:true
       },
+      superUser:{
+        type:Boolean,
+        required:true
+      },
       presentAddress:{
         type:String,
         required:true
       },
       collegeName:{
         type:String,
-        required:true
       },
       phoneNumber:{
         type:String,

@@ -26,7 +26,7 @@ router.get("/login", (req, res,next) => {
   res.render("login");
 });
 router.post("/login", (req, res,next) => {
-console.log(req.body.username)
+//console.log(req.body.username)
 
   userDB.findOne({username:req.body.username},(err,userVal)=>{
       if(err){
@@ -39,7 +39,7 @@ console.log(req.body.username)
         if(!userVal.comparePassword(req.body.password,userVal.password)){
             res.send('Invalid Credentials')
         }
-        else{
+        else if(userVal.staffStatus==true){
             req.session.user = userVal
             let userCookie = req.cookies.user;
             if(userCookie===undefined)
@@ -51,9 +51,22 @@ console.log(req.body.username)
 
             res.redirect('/complaints')
         }
+        else{
+          res.render('login',({msg:'Not a Authorized User'}))
+        }
       }
     })
 });
+router.get('/logout',(req,res)=>{
+  if (req.session.user || req.cookies.user) {
+    req.session.user=null
+    res.clearCookie("user");
+    console.log('Logged out')
+    res.redirect('/login')
+  } else {
+    res.redirect('/login')
+  }
+})
 router.get('/check',(req,res,next)=>{
     if (req.session.user || req.cookies.user) {
         res.send('Logged In')
@@ -63,19 +76,21 @@ router.get('/check',(req,res,next)=>{
 })
 
 router.get("/complaints",sessionChecker, (req, res) => {
-  console.log(req);
+  //console.log(req);
   complaintsDB
     .find()
     .exec()
     .then(doc => {
       res.render("complaints", {
-        doc: doc
+        doc: doc,
+        user:req.session.user||req.cookies.user,
+        curURL:req.protocol + '://' + req.get('host'),
       });
     });
 });
 router.post("/statusUpdate", (req, res) => {
-  console.log(req.body.attended);
-  console.log(req.query.id);
+  //console.log(req.body.attended);
+  //console.log(req.query.id);
   complaintsDB.findOneAndUpdate(
     { _id: req.query.id },
     { attendedStatus: true },
