@@ -1,12 +1,40 @@
-<form action="/signup" method="POST">
-    <input type="text" placeholder="Username" name="username">
-    <input type="text" placeholder="Email Id" name="email">
-    <input type="password" placeholder="Password" name="password">
-    <input type="text" placeholder="Full Name" name="name">
-    <input type="text" placeholder="College Name" name='collegeName'>
-    <input type="text" placeholder="Present Address" name="presentAddress">
-    <input type="tel" placeholder="Phone Number" name="phoneNumber">
-    <p>Staff Status:<input type="checkbox" name="staffStatus" value="true" class='status' onchange="this.form.submit()" checked disabled>
+<div class="btn-group" role="group" aria-label="Basic example">
+  <a href="/complaints"><button type="button" class="btn btn-secondary">Go To Dashboard</button></a>
+  <a href="/logout"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Logout</button></a>
+
+</div>
+<form action="/signup" method="POST" onsubmit="return submitOnClick()">
+    <input type="text" placeholder="Username" name="username" id='username'>
+    <input type="text" placeholder="Email Id" name="email" id='email'>
+    <input type="password" placeholder="Password" name="password" id='password'>
+    <input type="text" placeholder="Full Name" name="name" id='name'>
+    <input type="text" placeholder="College Name" name='collegeName' id='collegeName'>
+    <input type="text" placeholder="Present Address" name="presentAddress" id='presentAddress'>
+    <input type="tel" placeholder="Phone Number" name="phoneNumber" id='phoneNumber'>
+    <p>Staff Status:<input type="checkbox" name="staffStatus" value="true" class='status' onchange="this.form.submit()"
+            checked disabled>
     </p>
-    <p>Super User:</p>
+    <button class="btn btn-primary btn-block">Sign Up</button>
 </form>
+<p id='message'></p>
+{{#if message}}
+<p>{{message}}</p>
+{{/if}}
+<script>
+    console.log('script')
+    function submitOnClick() {
+        console.log('called from function')
+        if (document.getElementById('username').value != '' && document.getElementById('email').value != '' && document.getElementById('password').value != '' && document.getElementById('name').value != '' && document.getElementById('collegeName').value != '' && document.getElementById('presentAddress').value != '' && document.getElementById('phoneNumber').value != '')
+            {
+                console.log('validated')
+                return true;
+            }
+        //event.form.submit()
+        else
+            {
+
+                document.getElementById('message').innerHTML = 'Must Complete All The Fields'
+                return false;
+            }
+    }
+</script>

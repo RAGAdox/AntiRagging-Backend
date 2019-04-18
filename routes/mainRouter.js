@@ -1,6 +1,8 @@
 const express = require("express");
 const session = require("express-session");
 const cookieParser=require('cookie-parser')
+const mongoose=require('mongoose');
+
 const complaintsDB = require("../models/complain");
 const userDB=require('../models/user')
 const sessionChecker=require('../middleware/sessionChecker')
@@ -74,7 +76,57 @@ router.get('/check',(req,res,next)=>{
         res.redirect('/login')
       }
 })
-
+router.get('/signup',sessionChecker,(req,res)=>{
+  let user=req.session.user||req.cookies.user
+  if(user){
+    res.render('signup')
+  }
+})
+router.post('/signup',(req,res)=>{
+  var username=req.body.username,
+            email=req.body.email,
+            password=req.body.password,
+            staffStatus=true,
+            collegeName=req.body.collegeName,
+            presentAddress=req.body.presentAddress,
+            name=req.body.name,
+            superUser=false
+            phoneNumber=req.body.phoneNumber;
+            userDB.findOne({username:username},(err,doc)=>{
+              if(err){res.status(500).json({success:false,error:err,message:'Some Error Occured'})}
+              else{
+                  if(doc){
+                      res.status(500).json({success:false,message:'Username Already Taken'})
+                  }
+                  else{
+                      var newUser=new userDB();
+                      newUser._id=new mongoose.Types.ObjectId(),
+                      newUser.username=username;
+                      newUser.email=email;
+                      newUser.staffStatus=staffStatus;
+                      newUser.password=newUser.hashPassword(password);
+                      newUser.collegeName=collegeName;
+                      newUser.presentAddress=presentAddress;
+                      newUser.phoneNumber=phoneNumber;
+                      newUser.name=name;
+                      newUser.superUser=superUser||false;
+                      newUser.save(function(err,user){
+                          if(err)
+                              res.status(500).json({success:false,error:err,message:'Some Error Occured while signing up'})
+                          else{
+                              //res.json({success:true,user:user,message:'Signed Up successfully'})
+                              res.render('signup',({
+                                success:true,
+                                user:user,
+                                message:'Signed Up Successfully',
+                              }))
+                          }
+                      })
+                  }
+              }
+          })
+  
+})
 router.get("/complaints",sessionChecker, (req, res) => {
   //console.log(req);
   complaintsDB
