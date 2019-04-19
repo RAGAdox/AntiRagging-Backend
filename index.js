@@ -10,7 +10,7 @@ const path = require("path");
 const passAuth=require('./routes/passAuth')(passport);
 require('./passport')(passport);
 const app = express();
-mongoose.connect('mongodb+srv://root:toor@clgdb-f31cs.mongodb.net/users?retryWrites=true',{ useNewUrlParser: true });
+mongoose.connect('mongodb+srv://root:toor@clgdb-f31cs.mongodb.net/users?retryWrites=true',{ useNewUrlParser: true }).catch(console.log('An error occured'));
 app.use(bodyParser.urlencoded({
     extended: false
 }));
