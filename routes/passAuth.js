@@ -30,6 +30,7 @@ module.exports=function(passport)
             collegeName=req.body.collegeName,
             presentAddress=req.body.presentAddress,
             name=req.body.name,
+            superUser=req.body.superUser
             phoneNumber=req.body.phoneNumber;
         userDB.findOne({username:username},(err,doc)=>{
             if(err){res.status(500).json({success:false,error:err,message:'Some Error Occured'})}
@@ -48,6 +49,7 @@ module.exports=function(passport)
                     newUser.presentAddress=presentAddress;
                     newUser.phoneNumber=phoneNumber;
                     newUser.name=name;
+                    newUser.superUser=superUser||false;
                     newUser.save(function(err,user){
                         if(err)
                             res.status(500).json({success:false,error:err,message:'Some Error Occured while signing up'})

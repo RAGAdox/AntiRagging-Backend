@@ -1,3 +1,11 @@
+<div class="btn-group" role="group" aria-label="Basic example">
+{{#if user.superUser}}
+  <a href="/signup"><button type="button" class="btn btn-secondary">New Staff User</button></a>
+{{/if}}
+
+  <a href="/logout"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Logout</button></a>
+
+</div>
 <table class="table">
     <thead>
         <tr>
