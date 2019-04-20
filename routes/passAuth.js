@@ -15,9 +15,13 @@ module.exports = function(passport) {
       port: 465,
       secure: true,
       auth: {
+        user: 'antiragging.kgec.19@gmail.com',
+        pass: 'Rishi@1997'
+      }
+      /*auth: {
         user: process.env.SMTP_SERVER_EMAIL_ID,
         pass: process.env.SMTP_SERVER_EMAIL_PWD
-      }
+      }*/
       /*auth: {
               user: "espektro@kgec.edu.in" ,
               pass: "Espektro@kgec"
@@ -131,6 +135,26 @@ module.exports = function(passport) {
       });
     }
   );
+  router.get('/members',token.checkToken,(req,res,next)=>{
+      let superUser=[],staffUsers=[];
+      userDB.find({},(err,doc)=>{
+          if(doc){
+              let l=doc.length,i=0
+              doc.forEach(user => {
+                  i++
+                  if(user.staffStatus==true&&user.superUser==false)
+                  staffUsers.push(user)
+                  else if(user.superUser==true)
+                  superUser.push(user)
+                  if(i==l-1){
+                      res.json({success:true,'staffUsers':staffUsers,'superUser':superUser})
+                      next()
+                  }
+              });
+          }
+      }).then(()=>{if(!staffUsers)res.json({success:false,message:'some error occured'})})
+      
+  })
   router.get("/profile", token.checkToken, (req, res) => {
     username = req.headers["username"];
     console.log("header username= " + username);
