@@ -15,8 +15,8 @@ module.exports = function(passport) {
       port: 465,
       secure: true,
       auth: {
-        user: 'antiragging.kgec.19@gmail.com',
-        pass: 'Rishi@1997'
+        user: "antiragging.kgec.19@gmail.com",
+        pass: "Rishi@1997"
       }
       /*auth: {
         user: process.env.SMTP_SERVER_EMAIL_ID,
@@ -29,35 +29,34 @@ module.exports = function(passport) {
     });
     let mailOptions = "";
 
-    userDB
-      .findOne({ username: username }, (err, doc) => {
-        if (err) {
-          res.json({ success: false, message: "database error occured" });
-        } else if (!doc) {
-          res.json({ success: false, message: "User Not Found" });
-        } else {
-          mailOptions = {
-            from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
-            to: doc.email,
-            subject: "Complain Registered Against "+complain.ragger,
-            html:
-              "<html><body><h1>Complain Registered</h1><br><p>Name of Victim :-" +
-              complain.name +
-              "</p><p>Name of Ragger :-" +
-              complain.ragger +
-              "</p><p>Complain Time :- " +
-              complain.created_at +
-              "</p><p>Attended Status :-" +
-              complain.attendedStatus +
-              "</p></body></html>"
-          };
-        }
-      })
-      .then(() => {
-        let info = transporter.sendMail(mailOptions);
-        console.log("Message sent: %s", info.messageId);
-        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-      });
+    userDB.findOne({ username: username }, (err, doc) => {
+      if (err) {
+        res.json({ success: false, message: "database error occured" });
+      } else if (!doc) {
+        res.json({ success: false, message: "User Not Found" });
+      } else if (doc) {
+        console.log("setting mailOptions");
+        mailOptions = {
+          from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
+          to: doc.email,
+          subject: "Complain Registered Against " + complain.ragger,
+          html:
+            "<html><body><h1>Complain Registered</h1><br><p>Name of Victim :-" +
+            complain.name +
+            "</p><p>Name of Ragger :-" +
+            complain.ragger +
+            "</p><p>Complain Time :- " +
+            complain.created_at +
+            "</p><p>Attended Status :-" +
+            complain.attendedStatus +
+            "</p></body></html>"
+        };
+        let info = transporter.sendMail(mailOptions).then(() => {
+          console.log("Message sent: %s", info.messageId);
+          console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        });
+      }
+    });
   }
 
   router.get("/test", (req, res) => {
@@ -135,26 +134,35 @@ module.exports = function(passport) {
       });
     }
   );
-  router.get('/members',token.checkToken,(req,res,next)=>{
-      let superUser=[],staffUsers=[];
-      userDB.find({},(err,doc)=>{
-          if(doc){
-              let l=doc.length,i=0
-              doc.forEach(user => {
-                  i++
-                  if(user.staffStatus==true&&user.superUser==false)
-                  staffUsers.push(user)
-                  else if(user.superUser==true)
-                  superUser.push(user)
-                  if(i==l-1){
-                      res.json({success:true,'staffUsers':staffUsers,'superUser':superUser})
-                      next()
-                  }
+  router.get("/members", token.checkToken, (req, res, next) => {
+    let superUser = [],
+      staffUsers = [];
+    userDB
+      .find({}, (err, doc) => {
+        if (doc) {
+          let l = doc.length,
+            i = 0;
+          doc.forEach(user => {
+            i++;
+            if (user.staffStatus == true && user.superUser == false)
+              staffUsers.push(user);
+            else if (user.superUser == true) superUser.push(user);
+            if (i == l - 1) {
+              res.json({
+                success: true,
+                staffUsers: staffUsers,
+                superUser: superUser
               });
-          }
-      }).then(()=>{if(!staffUsers)res.json({success:false,message:'some error occured'})})
-      
-  })
+              next();
+            }
+          });
+        }
+      })
+      .then(() => {
+        if (!staffUsers)
+          res.json({ success: false, message: "some error occured" });
+      });
+  });
   router.get("/profile", token.checkToken, (req, res) => {
     username = req.headers["username"];
     console.log("header username= " + username);
@@ -207,27 +215,26 @@ module.exports = function(passport) {
         })*/
   });
   router.get("/checktoken", token.checkToken, (req, res) => {
-      let reqName=''
-      if(req.headers.username)
-      {
-          userDB.findOne({username:req.headers.username},(err,doc)=>{
-              if(doc){
-                  console.log('USER FOUND')
-                reqName=doc.name
-                res.status(200).json({ success: true, message: "Login Verified",name:reqName })
-              }
-              else{
-                  res.json({success:false,message:'Username Error',name:''})
-              }
-          })
-      }
-    
+    let reqName = "";
+    if (req.headers.username) {
+      userDB.findOne({ username: req.headers.username }, (err, doc) => {
+        if (doc) {
+          console.log("USER FOUND");
+          reqName = doc.name;
+          res
+            .status(200)
+            .json({ success: true, message: "Login Verified", name: reqName });
+        } else {
+          res.json({ success: false, message: "Username Error", name: "" });
+        }
+      });
+    }
   });
   router.post("/complain", token.checkToken, (req, res) => {
     var newComplain = new complainDB();
     newComplain._id = new mongoose.Types.ObjectId();
     newComplain.username = req.headers["username"];
-    if(req.body.name)newComplain.name=req.body.name
+    if (req.body.name) newComplain.name = req.body.name;
     else if (req.headers.name) newComplain.name = req.headers.name;
     else newComplain.name = req.headers["username"];
     if (req.body.ragger) newComplain.ragger = req.body.ragger;
@@ -243,6 +250,7 @@ module.exports = function(passport) {
           message: "Server Error Occured"
         });
       else {
+        console.log(req.headers.username);
         main(req.headers.username, complain)
           .catch(console.error)
           .then(() =>
@@ -310,17 +318,16 @@ module.exports = function(passport) {
                 }
               );
               // return the JWT token for the future API calls
-              userDB.findOne({username:req.body.username},(err,doc)=>{
-                  if(doc){
-                    res.json({
-                        success: true,
-                        message: "Authentication successful!",
-                        token: token,
-                        name:doc.name
-                      });
-                  }
-              })
-              
+              userDB.findOne({ username: req.body.username }, (err, doc) => {
+                if (doc) {
+                  res.json({
+                    success: true,
+                    message: "Authentication successful!",
+                    token: token,
+                    name: doc.name
+                  });
+                }
+              });
             }
           );
         }
