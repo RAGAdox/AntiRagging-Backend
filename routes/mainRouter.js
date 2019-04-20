@@ -2,7 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const cookieParser=require('cookie-parser')
 const mongoose=require('mongoose');
-
+const nodemailer=require('nodemailer')
 const complaintsDB = require("../models/complain");
 const userDB=require('../models/user')
 const sessionChecker=require('../middleware/sessionChecker')
@@ -19,7 +19,52 @@ router.use(
   })
 );
 router.use(cookieParser());
+async function main(username, complain,staff) {
+  var transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.SMTP_SERVER_EMAIL_ID,
+      pass: process.env.SMTP_SERVER_EMAIL_PWD
+    }
+    /*auth: {
+            user: "espektro@kgec.edu.in" ,
+            pass: "Espektro@kgec"
+          }*/
+  });
+  let mailOptions = "";
 
+  userDB
+    .findOne({ username: username }, (err, doc) => {
+      if (err) {
+        res.json({ success: false, message: "database error occured" });
+      } else if (!doc) {
+        res.json({ success: false, message: "User Not Found" });
+      } else {
+        mailOptions = {
+          from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
+          to: doc.email,
+          subject: "Complain Against "+complain.ragger+" was attended by "+staff,
+          html:
+            "<html><body><h1>Complain Registered</h1><br><p>Name of Victim :-" +
+            complain.name +
+            "</p><p>Name of Ragger :-" +
+            complain.ragger +
+            "</p><p>Complain Time :- " +
+            complain.created_at +
+            "</p><p>Attended Status :-" +
+            true +
+            "</p></body></html>"
+        };
+      }
+    })
+    .then(() => {
+      let info = transporter.sendMail(mailOptions);
+      console.log("Message sent: %s", info.messageId);
+      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    });
+}
 
 router.get("/", (req, res) => {
   res.redirect('/complaints')
@@ -150,9 +195,16 @@ router.post("/statusUpdate", (req, res) => {
       if (err) {
         res.send("some database error occured");
       } else if (!doc) {
-        res.send("document not found");
+        res.send("  document not found");
       } else {
-        res.redirect("/complaints");
+        let username=''
+        if(req.session.user)
+          username=req.session.user.name
+        else
+          username=req.cookies.user.name
+        
+        main(doc.username,doc,username).then(()=>res.redirect("/complaints"))
+        
       }
     }
   );
