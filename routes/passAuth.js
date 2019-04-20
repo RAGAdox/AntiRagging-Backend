@@ -15,9 +15,13 @@ module.exports = function(passport) {
       port: 465,
       secure: true,
       auth: {
+        user: 'antiragging.kgec.19@gmail.com',
+        pass: 'Rishi@1997'
+      }
+      /*auth: {
         user: process.env.SMTP_SERVER_EMAIL_ID,
         pass: process.env.SMTP_SERVER_EMAIL_PWD
-      }
+      }*/
       /*auth: {
               user: "espektro@kgec.edu.in" ,
               pass: "Espektro@kgec"
