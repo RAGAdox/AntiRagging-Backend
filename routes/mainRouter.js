@@ -127,7 +127,7 @@ router.get('/signup',sessionChecker,(req,res)=>{
     res.render('signup')
   }
 })
-router.post('/signup',(req,res)=>{
+router.post('/signup',sessionChecker,(req,res)=>{
   var username=req.body.username,
             email=req.body.email,
             password=req.body.password,
@@ -185,7 +185,7 @@ router.get("/complaints",sessionChecker, (req, res) => {
       });
     });
 });
-router.post("/statusUpdate", (req, res) => {
+router.post("/statusUpdate",sessionChecker, (req, res) => {
   //console.log(req.body.attended);
   //console.log(req.query.id);
   complaintsDB.findOneAndUpdate(
