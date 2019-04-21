@@ -1,0 +1,12 @@
+<div class="btn-group" role="group" aria-label="Basic example">
+  <a href="/complaints"><button type="button" class="btn btn-secondary">Go To Dashboard</button></a>
+  <a href="/logout"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Logout</button></a>
+
+</div>
+<hr>
+<form action="/resetpassword" method="POST">
+    <input type="password" name="oldpassword" class="form-control" placeholder="Enter Old Password">
+    <input type="password" name="newpassword" class="form-control" placeholder="Enter New Password">
+    <input type="submit" value="Reset Password" class="btn btn-primary btn-block">
+    <p>{{msg}}</p>
+</form>

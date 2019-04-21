@@ -82,10 +82,10 @@ router.post("/login", (req, res, next) => {
     if (err) {
       res.send("DATABASE ERROR OCCURED");
     } else if (!userVal) {
-      res.send("User Not Found");
+      res.render("login", { msg: "User Not Found" });
     } else if (userVal) {
       if (!userVal.comparePassword(req.body.password, userVal.password)) {
-        res.send("Invalid Credentials");
+        res.render("login", { msg: "Invalid Credentials" });
       } else if (userVal.staffStatus == true) {
         req.session.user = userVal;
         let userCookie = req.cookies.user;
@@ -192,6 +192,44 @@ router.get("/complaints", sessionChecker, (req, res) => {
       });
     });
 });
+router.get('/resetpassword',sessionChecker,(req,res)=>{
+  res.render('reset')
+})
+router.post('/resetpassword',sessionChecker,(req,res)=>{
+  //console.log(req.session.user.username,req.cookies.user.username)
+  let username=''
+  if(req.session.user)
+    username=req.session.user.username
+  else
+    username=req.cookies.user.username
+  userDB.findOne({username:username},(err,doc)=>{
+    if(doc){
+      if(doc.comparePassword(req.body.oldpassword,doc.password)){
+        console.log('Old Password is correct')
+        var newpassword=doc.hashPassword(req.body.newpassword)
+        userDB.findOneAndUpdate({username:username},{password:newpassword},(err,doc)=>{
+          if(err){
+            res.render('reset',{
+              msg:'PASSWORD RESET UNSUCCESSFULL'
+            })
+          }
+          else if(!doc){
+            res.render('reset',{
+              msg:'PASSWORD RESET UNSUCCESSFULL'
+            })
+          }
+          else if(doc){
+            req.session.user = null;
+            res.clearCookie("user");
+            res.render('login',{
+              msg:'PASSWORD RESET SUCCESSFULL'
+            })
+          }
+        })
+      }
+    }
+  })
+})
 router.post("/statusUpdate", sessionChecker, (req, res) => {
   //console.log(req.body.attended);
   //console.log(req.query.id);

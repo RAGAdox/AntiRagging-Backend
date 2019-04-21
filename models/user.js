@@ -29,14 +29,12 @@ const usersSchema=new mongoose.Schema({
       },
       presentAddress:{
         type:String,
-        required:true
       },
       collegeName:{
         type:String,
       },
       phoneNumber:{
         type:String,
-        required:true
       }
 });
 usersSchema.methods.hashPassword=function(password){

@@ -3,17 +3,18 @@
   <a href="/logout"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Logout</button></a>
 
 </div>
+<hr>
 <form action="/signup" method="POST" onsubmit="return submitOnClick()">
-    <input type="text" placeholder="Username" name="username" id='username'>
-    <input type="text" placeholder="Email Id" name="email" id='email'>
-    <input type="password" placeholder="Password" name="password" id='password'>
-    <input type="text" placeholder="Full Name" name="name" id='name'>
-    <input type="text" placeholder="College Name" name='collegeName' id='collegeName'>
-    <input type="text" placeholder="Present Address" name="presentAddress" id='presentAddress'>
-    <input type="tel" placeholder="Phone Number" name="phoneNumber" id='phoneNumber'>
+    <p><input type="text" placeholder="Username" name="username" id='username' class="form-control"></p>
+    <p><input type="text" placeholder="Email Id" name="email" id='email' class="form-control"></p>
+    <p><input type="password" placeholder="Password" name="password" id='password' class="form-control"></p>
+    <p><input type="text" placeholder="Full Name" name="name" id='name' class="form-control"></p>
+    <p><input type="text" placeholder="College Name" name='collegeName' id='collegeName' class="form-control"></p>
+    <p><input type="text" placeholder="Present Address" name="presentAddress" id='presentAddress' class="form-control"></p>
+    <p><input type="tel" placeholder="Phone Number" name="phoneNumber" id='phoneNumber' class="form-control"></p>
     <p>Staff Status:<input type="checkbox" name="staffStatus" value="true" class='status' onchange="this.form.submit()"
-            checked disabled>
-    </p>
+            checked disabled class="form-control"></p>
+    
     <button class="btn btn-primary btn-block">Sign Up</button>
 </form>
 <p id='message'></p>
