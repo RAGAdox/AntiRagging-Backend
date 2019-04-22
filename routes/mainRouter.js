@@ -160,7 +160,7 @@ router.post("/signup", sessionChecker, (req, res) => {
         newUser.phoneNumber = phoneNumber;
         newUser.name = name;
         newUser.superUser = superUser || false;
-        newUser.save(function(err, user) {
+        newUser.save(function (err, user) {
           if (err)
             res.status(500).json({
               success: false,
