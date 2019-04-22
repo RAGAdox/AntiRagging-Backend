@@ -2,6 +2,7 @@
     {{#if user.superUser}}
     <a href="/signup"><button type="button" class="btn btn-secondary">New Staff User</button></a>
     {{/if}}
+    <a href="/update"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Update Profile</button></a>
 
     <a href="/logout"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Logout</button></a>
     <a href="resetpassword"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Reset Password</button></a>
