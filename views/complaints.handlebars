@@ -2,10 +2,12 @@
     {{#if user.superUser}}
     <a href="/signup"><button type="button" class="btn btn-secondary">New Staff User</button></a>
     {{/if}}
-    <a href="/update"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Update Profile</button></a>
+    <a href="/update"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Update
+            Profile</button></a>
 
     <a href="/logout"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Logout</button></a>
-    <a href="resetpassword"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Reset Password</button></a>
+    <a href="resetpassword"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Reset
+            Password</button></a>
 </div>
 <table class="table table-hover">
     <thead class="thead-dark">
@@ -35,7 +37,8 @@
                         class='status' onchange="this.form.submit()">
                 </form>{{this.attendedStatus}}
             </td>
-            <script>document.getElementById('{{this._id}}').checked = {{ this.attendedStatus }}
+            <script>
+                document.getElementById('{{this._id}}').checked = {{ this.attendedStatus }}
                 if ({{ this.attendedStatus }})
                 document.getElementById('{{this._id}}').disabled = true;
             </script>
