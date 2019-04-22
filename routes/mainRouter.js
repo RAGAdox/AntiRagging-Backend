@@ -137,14 +137,17 @@ router.post("/signup", sessionChecker, (req, res) => {
     phoneNumber = req.body.phoneNumber;
   userDB.findOne({ username: username }, (err, doc) => {
     if (err) {
-      res
-        .status(500)
-        .json({ success: false, error: err, message: "Some Error Occured" });
+      res.render("signup", {
+        success: false,
+        error: err,
+        message: "Some Internal Error Occured"
+      });
     } else {
       if (doc) {
-        res
-          .status(500)
-          .json({ success: false, message: "Username Already Taken" });
+        res.render("signup", {
+          success: false,
+          message: "Username Already Taken"
+        });
       } else {
         var newUser = new userDB();
         (newUser._id = new mongoose.Types.ObjectId()),
@@ -252,17 +255,17 @@ router.post("/statusUpdate", sessionChecker, (req, res) => {
     }
   );
 });
-router.get('/update',sessionChecker,(req,res)=>{
-  if(req.session.user)
-    res.render('update',{
-      user:req.session.user
-    })
+router.get("/update", sessionChecker, (req, res) => {
+  if (req.session.user)
+    res.render("update", {
+      user: req.session.user
+    });
   else
-    res.render('update',{
-      user:req.cookies.user
-    })
-})
-router.post("/update",sessionChecker, (req, res) => {
+    res.render("update", {
+      user: req.cookies.user
+    });
+});
+router.post("/update", sessionChecker, (req, res) => {
   let username = "";
   if (req.session.user) username = req.session.user.username;
   else username = req.session.user.username;
@@ -279,21 +282,19 @@ router.post("/update",sessionChecker, (req, res) => {
         phoneNumber: phoneNumber
       },
       (err, doc) => {
-        if(doc)
-        {
+        if (doc) {
           if (req.session.user || req.cookies.user) {
             req.session.user = null;
             res.clearCookie("user");
             console.log("Logged out");
           }
-          res.render('update',{
-            message:'Profile Updation Successfull'
-          })
-        }
-        else{
-          res.send('Some Error Occured')
+          res.render("update", {
+            message: "Profile Updation Successfull"
+          });
+        } else {
+          res.send("Some Error Occured");
         }
       }
-    )
+    );
 });
 module.exports = router;
