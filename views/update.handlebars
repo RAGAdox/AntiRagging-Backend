@@ -1,0 +1,37 @@
+<div class="btn-group" role="group" aria-label="Basic example">
+  <a href="/complaints"><button type="button" class="btn btn-secondary">Go To Dashboard</button></a>
+  <a href="/logout"><button type="button" class="btn btn-secondary" onclick="this.form.submit()">Logout</button></a>
+
+</div>
+<hr>
+<form action="/update" method="POST" onsubmit="return submitOnClick()">
+    <p><input type="text" placeholder="Username" name="username" value="{{user.username}}" id='username' class="form-control" disabled required></p>
+    <p><input type="text" placeholder="Email Id" name="email" value="{{user.email}}" id='email' class="form-control" required></p>
+    <p><input type="text" placeholder="Full Name" name="name" value="{{user.name}}" id='name' class="form-control" disabled required></p>
+    <p><input type="text" placeholder="College Name" name='collegeName' value="{{user.collegeName}}" id='collegeName' class="form-control" required></p>
+    <p><input type="text" placeholder="Present Address" name="presentAddress" value="{{user.presentAddress}}" id='presentAddress' class="form-control" required></p>
+    <p><input type="tel" placeholder="Phone Number" name="phoneNumber" value="{{user.phoneNumber}}" id='phoneNumber' class="form-control" required></p>
+    <button class="btn btn-primary btn-block">Update Profile</button>
+</form>
+<p id='message'></p>
+{{#if message}}
+<p>{{message}}</p>
+{{/if}}
+<script>
+    console.log('script')
+    function submitOnClick() {
+        console.log('called from function')
+        if (document.getElementById('username').value != '' && document.getElementById('email').value != '' && document.getElementById('password').value != '' && document.getElementById('name').value != '' && document.getElementById('collegeName').value != '' && document.getElementById('presentAddress').value != '' && document.getElementById('phoneNumber').value != '')
+            {
+                console.log('validated')
+                return true;
+            }
+        //event.form.submit()
+        else
+            {
+
+                document.getElementById('message').innerHTML = 'Must Complete All The Fields'
+                return false;
+            }
+    }
+</script>

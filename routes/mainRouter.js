@@ -133,18 +133,21 @@ router.post("/signup", sessionChecker, (req, res) => {
     collegeName = req.body.collegeName,
     presentAddress = req.body.presentAddress,
     name = req.body.name,
-    superUser = false;
-  phoneNumber = req.body.phoneNumber;
+    superUser = false,
+    phoneNumber = req.body.phoneNumber;
   userDB.findOne({ username: username }, (err, doc) => {
     if (err) {
-      res
-        .status(500)
-        .json({ success: false, error: err, message: "Some Error Occured" });
+      res.render("signup", {
+        success: false,
+        error: err,
+        message: "Some Internal Error Occured"
+      });
     } else {
       if (doc) {
-        res
-          .status(500)
-          .json({ success: false, message: "Username Already Taken" });
+        res.render("signup", {
+          success: false,
+          message: "Username Already Taken"
+        });
       } else {
         var newUser = new userDB();
         (newUser._id = new mongoose.Types.ObjectId()),
@@ -159,13 +162,11 @@ router.post("/signup", sessionChecker, (req, res) => {
         newUser.superUser = superUser || false;
         newUser.save(function(err, user) {
           if (err)
-            res
-              .status(500)
-              .json({
-                success: false,
-                error: err,
-                message: "Some Error Occured while signing up"
-              });
+            res.status(500).json({
+              success: false,
+              error: err,
+              message: "Some Error Occured while signing up"
+            });
           else {
             //res.json({success:true,user:user,message:'Signed Up successfully'})
             res.render("signup", {
@@ -179,6 +180,7 @@ router.post("/signup", sessionChecker, (req, res) => {
     }
   });
 });
+
 router.get("/complaints", sessionChecker, (req, res) => {
   //console.log(req);
   complaintsDB
@@ -192,44 +194,44 @@ router.get("/complaints", sessionChecker, (req, res) => {
       });
     });
 });
-router.get('/resetpassword',sessionChecker,(req,res)=>{
-  res.render('reset')
-})
-router.post('/resetpassword',sessionChecker,(req,res)=>{
+router.get("/resetpassword", sessionChecker, (req, res) => {
+  res.render("reset");
+});
+router.post("/resetpassword", sessionChecker, (req, res) => {
   //console.log(req.session.user.username,req.cookies.user.username)
-  let username=''
-  if(req.session.user)
-    username=req.session.user.username
-  else
-    username=req.cookies.user.username
-  userDB.findOne({username:username},(err,doc)=>{
-    if(doc){
-      if(doc.comparePassword(req.body.oldpassword,doc.password)){
-        console.log('Old Password is correct')
-        var newpassword=doc.hashPassword(req.body.newpassword)
-        userDB.findOneAndUpdate({username:username},{password:newpassword},(err,doc)=>{
-          if(err){
-            res.render('reset',{
-              msg:'PASSWORD RESET UNSUCCESSFULL'
-            })
+  let username = "";
+  if (req.session.user) username = req.session.user.username;
+  else username = req.cookies.user.username;
+  userDB.findOne({ username: username }, (err, doc) => {
+    if (doc) {
+      if (doc.comparePassword(req.body.oldpassword, doc.password)) {
+        console.log("Old Password is correct");
+        var newpassword = doc.hashPassword(req.body.newpassword);
+        userDB.findOneAndUpdate(
+          { username: username },
+          { password: newpassword },
+          (err, doc) => {
+            if (err) {
+              res.render("reset", {
+                msg: "PASSWORD RESET UNSUCCESSFULL"
+              });
+            } else if (!doc) {
+              res.render("reset", {
+                msg: "PASSWORD RESET UNSUCCESSFULL"
+              });
+            } else if (doc) {
+              req.session.user = null;
+              res.clearCookie("user");
+              res.render("login", {
+                msg: "PASSWORD RESET SUCCESSFULL"
+              });
+            }
           }
-          else if(!doc){
-            res.render('reset',{
-              msg:'PASSWORD RESET UNSUCCESSFULL'
-            })
-          }
-          else if(doc){
-            req.session.user = null;
-            res.clearCookie("user");
-            res.render('login',{
-              msg:'PASSWORD RESET SUCCESSFULL'
-            })
-          }
-        })
+        );
       }
     }
-  })
-})
+  });
+});
 router.post("/statusUpdate", sessionChecker, (req, res) => {
   //console.log(req.body.attended);
   //console.log(req.query.id);
@@ -252,5 +254,47 @@ router.post("/statusUpdate", sessionChecker, (req, res) => {
       }
     }
   );
+});
+router.get("/update", sessionChecker, (req, res) => {
+  if (req.session.user)
+    res.render("update", {
+      user: req.session.user
+    });
+  else
+    res.render("update", {
+      user: req.cookies.user
+    });
+});
+router.post("/update", sessionChecker, (req, res) => {
+  let username = "";
+  if (req.session.user) username = req.session.user.username;
+  else username = req.session.user.username;
+  let email = req.body.email,
+    collegeName = req.body.collegeName;
+  presentAddress = req.body.presentAddress;
+  (phoneNumber = req.body.phoneNumber),
+    userDB.findOneAndUpdate(
+      { username: username },
+      {
+        email: email,
+        collegeName: collegeName,
+        presentAddress: presentAddress,
+        phoneNumber: phoneNumber
+      },
+      (err, doc) => {
+        if (doc) {
+          if (req.session.user || req.cookies.user) {
+            req.session.user = null;
+            res.clearCookie("user");
+            console.log("Logged out");
+          }
+          res.render("update", {
+            message: "Profile Updation Successfull"
+          });
+        } else {
+          res.send("Some Error Occured");
+        }
+      }
+    );
 });
 module.exports = router;
