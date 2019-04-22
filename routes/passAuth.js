@@ -8,7 +8,7 @@ let jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator/check");
 const token = require("../middleware/token");
 var router = express.Router();
-module.exports = function (passport) {
+module.exports = function(passport) {
   async function main(username, complain) {
     var transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -45,6 +45,8 @@ module.exports = function (passport) {
             complain.name +
             "</p><p>Name of Ragger :-" +
             complain.ragger +
+            "</p><p>Details :-" +
+            complain.details +
             "</p><p>Complain Time :- " +
             complain.created_at +
             "</p><p>Attended Status :-" +
@@ -114,7 +116,7 @@ module.exports = function (passport) {
             newUser.phoneNumber = phoneNumber;
             newUser.name = name;
             newUser.superUser = superUser || false;
-            newUser.save(function (err, user) {
+            newUser.save(function(err, user) {
               if (err)
                 res.status(500).json({
                   success: false,
@@ -230,15 +232,19 @@ module.exports = function (passport) {
       });
     }
   });
-  router.get('/complainAll', token.checkToken, (req, res) => {
+  router.get("/complainAll", token.checkToken, (req, res) => {
     if (req.headers.username) {
       complainDB.find({ username: req.headers.username }, (err, doc) => {
         if (doc) {
-          res.json({ success: true, message: 'Fetch Successfull', complain: doc })
+          res.json({
+            success: true,
+            message: "Fetch Successfull",
+            complain: doc
+          });
         }
-      })
+      });
     }
-  })
+  });
   router.post("/complain", token.checkToken, (req, res) => {
     var newComplain = new complainDB();
     newComplain._id = new mongoose.Types.ObjectId();
@@ -248,10 +254,12 @@ module.exports = function (passport) {
     else newComplain.name = req.headers["username"];
     if (req.body.ragger) newComplain.ragger = req.body.ragger;
     else newComplain.ragger = "";
+    if (req.body.details) newComplain.details = req.body.details;
+    else newComplain.details = "";
     newComplain.locationLongitude = req.body.locationLongitude;
     newComplain.locationLatitude = req.body.locationLatitude;
     console.log(newComplain);
-    newComplain.save(function (err, complain) {
+    newComplain.save(function(err, complain) {
       if (err)
         res.status(500).json({
           success: false,
@@ -281,7 +289,7 @@ module.exports = function (passport) {
     else newComplain.name = "";
     if (req.body.ragger) newComplain.ragger = req.body.ragger;
     else newComplain.ragger = "";
-    newComplain.save(function (err, complain) {
+    newComplain.save(function(err, complain) {
       if (err)
         res.status(500).json({
           success: false,
