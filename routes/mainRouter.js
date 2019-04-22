@@ -55,6 +55,8 @@ async function main(username, complain, staff) {
           complain.name +
           "</p><p>Name of Ragger :-" +
           complain.ragger +
+          "</p><p>Details :-" +
+          complain.details +
           "</p><p>Complain Time :- " +
           complain.created_at +
           "</p><p>Attended Status :-" +
@@ -160,7 +162,7 @@ router.post("/signup", sessionChecker, (req, res) => {
         newUser.phoneNumber = phoneNumber;
         newUser.name = name;
         newUser.superUser = superUser || false;
-        newUser.save(function (err, user) {
+        newUser.save(function(err, user) {
           if (err)
             res.status(500).json({
               success: false,
