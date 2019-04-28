@@ -2,11 +2,12 @@ const express = require("express");
 var session = require("express-session");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
-const userDB = require("../models/user");
 const complainDB = require("../models/complain.js");
 let jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator/check");
 const token = require("../middleware/token");
+const recepients = require("../helpers/recepients");
+
 var router = express.Router();
 module.exports = function(passport) {
   async function main(username, complain) {
@@ -38,7 +39,7 @@ module.exports = function(passport) {
         console.log("setting mailOptions");
         mailOptions = {
           from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
-          to: doc.email,
+          to: doc.email + recepients.email,
           subject: "Complain Registered Against " + complain.ragger,
           html:
             "<html><body><h1>Complain Registered</h1><br><p>Name of Victim :-" +
