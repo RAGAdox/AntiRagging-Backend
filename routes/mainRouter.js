@@ -199,6 +199,28 @@ router.post("/signup", sessionChecker, (req, res) => {
     name = req.body.name,
     superUser = false,
     phoneNumber = req.body.phoneNumber;
+  var chars = [
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+    "0123456789",
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  ];
+  var randPwd = [5, 3, 2]
+    .map(function(len, i) {
+      return Array(len)
+        .fill(chars[i])
+        .map(function(x) {
+          return x[Math.floor(Math.random() * x.length)];
+        })
+        .join("");
+    })
+    .concat()
+    .join("")
+    .split("")
+    .sort(function() {
+      return 0.5 - Math.random();
+    })
+    .join("");
+  console.log(randPwd);
   userDB.findOne({ username: username }, (err, doc) => {
     if (err) {
       res.render("signup", {
@@ -218,7 +240,7 @@ router.post("/signup", sessionChecker, (req, res) => {
           (newUser.username = username);
         newUser.email = email;
         newUser.staffStatus = staffStatus;
-        newUser.password = newUser.hashPassword(password);
+        newUser.password = newUser.hashPassword(randPwd);
         newUser.collegeName = collegeName;
         newUser.presentAddress = presentAddress;
         newUser.phoneNumber = phoneNumber;
@@ -237,6 +259,68 @@ router.post("/signup", sessionChecker, (req, res) => {
               success: true,
               user: user,
               message: "Signed Up Successfully"
+            });
+            var transporter = nodemailer.createTransport({
+              host: "smtp.gmail.com",
+              port: 465,
+              secure: true,
+              auth: {
+                user: "antiragging.kgec.19@gmail.com",
+                pass: "Rishi@1997"
+              }
+            });
+            let iv = crypto.randomBytes(IV_LENGTH);
+            let cipher = crypto.createCipheriv(
+              "aes-256-cbc",
+              new Buffer.from(ENCRYPTION_KEY),
+              iv
+            );
+            let enUsername = cipher.update(username);
+            enUsername = Buffer.concat([enUsername, cipher.final()]);
+            cipher = crypto.createCipheriv(
+              "aes-256-cbc",
+              new Buffer.from(ENCRYPTION_KEY),
+              iv
+            );
+            let enPassword = cipher.update(randPwd);
+            enPassword = Buffer.concat([enPassword, cipher.final()]);
+            console.log(username, randPwd, iv.toString("hex") + ":");
+            console.log(enUsername.toString("hex"), enPassword.toString("hex"));
+            //res.status(200).send(iv.toString("hex") + ":" + encrypted.toString("hex"));
+            let mailOptions = {
+              from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
+              to: email,
+              subject: "Requested User Created",
+              html:
+                "<html><body><h1>" +
+                username +
+                " " +
+                randPwd +
+                "</h1>" +
+                "<a href=?id=" +
+                +iv.toString("hex") +
+                ":" +
+                enUsername.toString("hex") +
+                "&key=" +
+                +iv.toString("hex") +
+                ":" +
+                enPassword.toString("hex") +
+                ">Link</a>   ?id=" +
+                +iv.toString("hex") +
+                ":" +
+                enUsername.toString("hex") +
+                "&key=" +
+                +iv.toString("hex") +
+                ":" +
+                enPassword.toString("hex") +
+                "</body></html>"
+            };
+            let info = transporter.sendMail(mailOptions).then(() => {
+              console.log("Message sent: %s", info.messageId);
+              console.log(
+                "Preview URL: %s",
+                nodemailer.getTestMessageUrl(info)
+              );
             });
           }
         });
