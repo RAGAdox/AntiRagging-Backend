@@ -54,7 +54,10 @@ userDB.find({ staffStatus: true }, (err, doc) => {
       i++;
       if (element.email != undefined) recepients.email += "," + element.email;
       if (i == l - 1) {
-        app.listen(PORT, () => console.log(recepients));
+        app.listen(PORT, () => {
+          //console.log(recepients);
+          console.log("Server Started at " + PORT);
+        });
       }
     });
   }
