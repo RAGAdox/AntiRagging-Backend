@@ -6,6 +6,15 @@ const nodemailer = require("nodemailer");
 const complaintsDB = require("../models/complain");
 const userDB = require("../models/user");
 const sessionChecker = require("../middleware/sessionChecker");
+const crypto = require("crypto");
+const ENCRYPTION_KEY = "RISHIrishirishirishiRISHIrishiri";
+const IV_LENGTH = 16; // For AES, this is always 16
+
+//const algorithm = "aes-256-cbc";
+//const key = "12345678901234567890123456789012"; //crypto.randomBytes(32);
+//const iv = "123456789012356";
+//crypto.randomBytes(16);
+
 var router = express.Router();
 router.use(
   session({
@@ -104,6 +113,59 @@ router.post("/login", (req, res, next) => {
     }
   });
 });
+router.get("/activate", (req, res) => {
+  let iv = crypto.randomBytes(IV_LENGTH);
+  let cipher = crypto.createCipheriv(
+    "aes-256-cbc",
+    new Buffer.from(ENCRYPTION_KEY),
+    iv
+  );
+  let encrypted = cipher.update("rishirishi882@gmail.com");
+
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  res.status(200).send(iv.toString("hex") + ":" + encrypted.toString("hex"));
+  //console.log(iv.toString("hex") + ":" + encrypted.toString("hex"));
+});
+router.get("/activetest", (req, res) => {
+  let data = req.query.data;
+  let textParts = data.split(":");
+  let iv = new Buffer(textParts.shift(), "hex");
+  let encryptedText = new Buffer(textParts.join(":"), "hex");
+  let decipher = crypto.createDecipheriv(
+    "aes-256-cbc",
+    new Buffer(ENCRYPTION_KEY),
+    iv
+  );
+  let decrypted = decipher.update(encryptedText);
+
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  res.status(200).send(decrypted.toString());
+});
+/*router.get("/activate", (req, res) => {
+  var data = { email: "rishirishi882@gmail.com", name: "rishi mukherjee" };
+  var cipher = crypto.createCipher("aes-256-cbc", "d6F3Efeq");
+  let crypted = cipher.update(JSON.stringify(data), "utf8", "hex");
+  crypted += cipher.final("hex");
+  console.log(crypted);
+  /*let encrypted = crypto.publicEncrypt(key, data.email);
+  console.log(encrypted);*/
+/*let encrypted = crypto.publicEncrypt(
+    "RAGAdox",
+    Buffer.from(data.email, "utf8")
+  );
+  console.log(encrypted);
+});*/
+/*router.get("/activetest", (req, res) => {
+  let text = req.query.email;
+  var decipher = crypto.createDecipher("aes-256-cbc", "d6F3Efeq");
+  try {
+    var dec = decipher.update(text, "hex", "utf8");
+    dec += decipher.final("utf8");
+    res.send(dec);
+  } catch (e) {
+    res.status(400).send("BAD Url for User Creation");
+  }
+});*/
 router.get("/logout", (req, res) => {
   if (req.session.user || req.cookies.user) {
     req.session.user = null;
