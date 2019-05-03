@@ -113,19 +113,27 @@ router.post("/login", (req, res, next) => {
     }
   });
 });
-router.get("/activate", (req, res) => {
-  let iv = crypto.randomBytes(IV_LENGTH);
-  let cipher = crypto.createCipheriv(
-    "aes-256-cbc",
-    new Buffer.from(ENCRYPTION_KEY),
-    iv
-  );
-  let encrypted = cipher.update("rishirishi882@gmail.com");
+function encryptText(text) {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(IV_LENGTH, (err, buf) => {
+      if (err) {
+        return reject(err);
+      } else {
+        let cipher = crypto.createCipheriv(
+          "aes-256-cbc",
+          new Buffer.from(ENCRYPTION_KEY),
+          buf
+        );
+        let enText = cipher.update(text);
+        enText = Buffer.concat([enText, cipher.final()]);
+        let encryptedText = buf.toString("hex") + ":" + enText.toString("hex");
+        return resolve(encryptedText);
+      }
+    });
+  });
+}
 
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  res.status(200).send(iv.toString("hex") + ":" + encrypted.toString("hex"));
-  //console.log(iv.toString("hex") + ":" + encrypted.toString("hex"));
-});
+router.get("/activate", (req, res) => {});
 router.get("/activetest", (req, res) => {
   let data = req.query.data;
   let textParts = data.split(":");
@@ -269,59 +277,49 @@ router.post("/signup", sessionChecker, (req, res) => {
                 pass: "Rishi@1997"
               }
             });
-            let iv = crypto.randomBytes(IV_LENGTH);
-            let cipher = crypto.createCipheriv(
-              "aes-256-cbc",
-              new Buffer.from(ENCRYPTION_KEY),
-              iv
-            );
-            let enUsername = cipher.update(username);
-            enUsername = Buffer.concat([enUsername, cipher.final()]);
-            cipher = crypto.createCipheriv(
-              "aes-256-cbc",
-              new Buffer.from(ENCRYPTION_KEY),
-              iv
-            );
-            let enPassword = cipher.update(randPwd);
-            enPassword = Buffer.concat([enPassword, cipher.final()]);
-            console.log(username, randPwd, iv.toString("hex") + ":");
-            console.log(enUsername.toString("hex"), enPassword.toString("hex"));
-            //res.status(200).send(iv.toString("hex") + ":" + encrypted.toString("hex"));
-            let mailOptions = {
-              from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
-              to: email,
-              subject: "Requested User Created",
-              html:
-                "<html><body><h1>" +
-                username +
-                " " +
-                randPwd +
-                "</h1>" +
-                "<a href=?id=" +
-                +iv.toString("hex") +
-                ":" +
-                enUsername.toString("hex") +
-                "&key=" +
-                +iv.toString("hex") +
-                ":" +
-                enPassword.toString("hex") +
-                ">Link</a>   ?id=" +
-                +iv.toString("hex") +
-                ":" +
-                enUsername.toString("hex") +
-                "&key=" +
-                +iv.toString("hex") +
-                ":" +
-                enPassword.toString("hex") +
-                "</body></html>"
+            credentials = {
+              username: "",
+              password: ""
             };
-            let info = transporter.sendMail(mailOptions).then(() => {
-              console.log("Message sent: %s", info.messageId);
-              console.log(
-                "Preview URL: %s",
-                nodemailer.getTestMessageUrl(info)
-              );
+            let p1 = encryptText(username);
+            let p2 = encryptText(randPwd);
+
+            Promise.all([p1, p2]).then(result => {
+              var a1 = result[0];
+              let mailOptions = {
+                from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
+                to: email,
+                subject: "Requested User Created",
+                html: `<html><body><p>${a1} && ${
+                  result[1]
+                }</p><a href='http://127.0.0.1:2000/activate?id=${a1}&key=${
+                  result[1]
+                }'>Link</a></body></html>`
+              };
+
+              let info = transporter.sendMail(mailOptions).then(() => {
+                console.log("Message sent: %s", info.messageId);
+                console.log(
+                  "<html><body><h1>" +
+                    username +
+                    " " +
+                    randPwd +
+                    "</h1>" +
+                    "<p>" +
+                    +result[0] +
+                    "&" +
+                    result[1] +
+                    "</p></body></html>"
+                );
+                console.log(
+                  "Preview URL: %s",
+                  nodemailer.getTestMessageUrl(info)
+                );
+              });
             });
+
+            //console.log(, enPassword.toString("hex"));
+            //res.status(200).send(iv.toString("hex") + ":" + encrypted.toString("hex"));
           }
         });
       }
