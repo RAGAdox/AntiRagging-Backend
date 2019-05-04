@@ -60,5 +60,11 @@ userDB.find({ staffStatus: true }, (err, doc) => {
         });
       }
     });
+  } else if (!doc) {
+    console.log("NO SUPER USER FOUND");
+    app.listen(PORT, () => {
+      //console.log(recepients);
+      console.log("Server Started at " + PORT);
+    });
   }
 });

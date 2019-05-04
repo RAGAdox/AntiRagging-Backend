@@ -7,7 +7,7 @@ let jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator/check");
 const token = require("../middleware/token");
 const recepients = require("../helpers/recepients");
-
+const userDB = require("../models/user");
 var router = express.Router();
 module.exports = function(passport) {
   async function main(username, complain) {
