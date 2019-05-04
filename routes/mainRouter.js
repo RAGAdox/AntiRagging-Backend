@@ -299,7 +299,7 @@ router.get("/signup", sessionChecker, (req, res) => {
     res.render("signup");
   }
 });
-router.post("/signup", sessionChecker, (req, res) => {
+router.post("/signup", (req, res) => {
   var username = req.body.username,
     email = req.body.email,
     staffStatus = true,
