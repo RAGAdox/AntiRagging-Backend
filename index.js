@@ -42,12 +42,12 @@ app.use(passport.session());
 app.use("/", require("./routes/mainRouter.js"));
 app.use("/passAuth", passAuth);
 const PORT = process.env.PORT || 2000;
-/*app.listen(PORT, () => {
+app.listen(PORT, () => {
   //console.log(recepients);
   let dummyuser = new userDB();
   console.log(dummyuser.hashPassword("RAGAdox"));
   console.log("Server Started at " + PORT);
-});*/
+});
 userDB.find({ staffStatus: true }, (err, doc) => {
   if (err) {
     console.log("Database Error occured");
