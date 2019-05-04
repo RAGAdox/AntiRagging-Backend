@@ -302,7 +302,6 @@ router.get("/signup", sessionChecker, (req, res) => {
 router.post("/signup", sessionChecker, (req, res) => {
   var username = req.body.username,
     email = req.body.email,
-    password = req.body.password,
     staffStatus = true,
     collegeName = req.body.collegeName,
     presentAddress = req.body.presentAddress,
@@ -356,6 +355,7 @@ router.post("/signup", sessionChecker, (req, res) => {
         newUser.phoneNumber = phoneNumber;
         newUser.name = name;
         newUser.superUser = superUser || false;
+        newUser.activated = false;
         newUser.save(function(err, user) {
           if (err)
             res.status(500).json({
@@ -431,6 +431,7 @@ router.post("/signup", sessionChecker, (req, res) => {
 
 router.get("/complaints", sessionChecker, (req, res) => {
   //console.log(req);
+
   complaintsDB
     .find()
     .exec()
@@ -441,6 +442,7 @@ router.get("/complaints", sessionChecker, (req, res) => {
         curURL: req.protocol + "://" + req.get("host")
       });
     });
+  //else res.send("Current User Not Authorized");
 });
 router.get("/resetpassword", sessionChecker, (req, res) => {
   res.render("reset");
@@ -506,28 +508,29 @@ router.post("/statusUpdate", sessionChecker, (req, res) => {
 router.get("/update", sessionChecker, (req, res) => {
   if (req.session.user)
     res.render("update", {
-      user: req.session.user
+      user: req.session.user,
+      needLogin: false
     });
   else
     res.render("update", {
-      user: req.cookies.user
+      user: req.cookies.user,
+      needLogin: false
     });
 });
 router.post("/update", sessionChecker, (req, res) => {
   let username = "";
   if (req.session.user) username = req.session.user.username;
-  else username = req.session.user.username;
-  let email = req.body.email,
-    collegeName = req.body.collegeName;
+  else username = req.cookies.user.username;
+  let collegeName = req.body.collegeName;
   presentAddress = req.body.presentAddress;
   (phoneNumber = req.body.phoneNumber),
     userDB.findOneAndUpdate(
       { username: username },
       {
-        email: email,
         collegeName: collegeName,
         presentAddress: presentAddress,
-        phoneNumber: phoneNumber
+        phoneNumber: phoneNumber,
+        activated: true
       },
       (err, doc) => {
         if (doc) {
@@ -537,7 +540,8 @@ router.post("/update", sessionChecker, (req, res) => {
             console.log("Logged out");
           }
           res.render("update", {
-            message: "Profile Updation Successfull"
+            message: "Profile Updation Successfull",
+            needLogin: true
           });
         } else {
           res.send("Some Error Occured");

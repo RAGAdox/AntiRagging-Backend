@@ -19,6 +19,11 @@ const usersSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  activated: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   staffStatus: {
     type: Boolean,
     required: true
