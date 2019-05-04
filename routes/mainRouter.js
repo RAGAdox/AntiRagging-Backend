@@ -132,8 +132,110 @@ function encryptText(text) {
     });
   });
 }
+function decryptText(text) {
+  return new Promise((resolve, reject) => {
+    try {
+      let textParts = text.split(":");
+      let iv = new Buffer(textParts.shift(), "hex");
+      let encryptedText = new Buffer(textParts.join(":"), "hex");
+      let decipher = crypto.createDecipheriv(
+        "aes-256-cbc",
+        new Buffer.from(ENCRYPTION_KEY),
+        iv
+      );
+      let decrypted = decipher.update(encryptedText);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      return resolve(decrypted.toString());
+    } catch (e) {
+      return reject(e);
+    }
+  });
+}
+router.get("/activate", (req, res) => {
+  if (req.query.id != "" && req.query.key != "") {
+    let enUsername = req.query.id;
+    let enPassword = req.query.key;
+    let p1 = decryptText(enUsername);
+    let p2 = decryptText(enPassword);
+    Promise.all([p1, p2]).then(result => {
+      let username = result[0];
+      let password = result[1];
+      userDB.findOne({ username: username }, (err, doc) => {
+        if (err) {
+          res.status(400).send("Database Error Occured" + err);
+        } else if (doc) {
+          if (!doc.comparePassword(password, doc.password)) {
+            res.send(400).send("BAD URL");
+          } else {
+            res.render("resetInactive", {
+              username: doc.username,
+              key: enPassword
+            });
+          }
+        } else {
+          res.status(400).send("BAD URL");
+        }
+      });
+      //res.send(result[0] + "&&" + result[1]);
+    });
+  } else {
+    res.status(400).send("BAD URL");
+  }
+});
+router.post("/resetInactive", (req, res) => {
+  if (req.query.key != "") {
+    let enPassword = req.query.key;
+    let p1 = decryptText(enPassword);
+    var username = req.body.username;
+    let newPWD = req.body.newpassword;
+    Promise.all([p1]).then(result => {
+      let oldPassword = result[0];
+      console.log("Old Password " + oldPassword);
+      console.log("Username " + username);
+      console.log("new Password", newPWD);
+      userDB.findOne({ username: username }, (err, doc) => {
+        if (err) {
+          res.send("Some error occured");
+        } else if (doc) {
+          if (doc.comparePassword(oldPassword, doc.password)) {
+            console.log("Old Password is correct");
+            var newpassword = doc.hashPassword(newPWD);
+            userDB.findOneAndUpdate(
+              { username: username },
+              { password: newpassword },
+              (err, result) => {
+                if (err) {
+                  res.render("reset", {
+                    msg: "PASSWORD RESET UNSUCCESSFULL"
+                  });
+                } else if (!result) {
+                  res.render("reset", {
+                    msg: "PASSWORD RESET UNSUCCESSFULL"
+                  });
+                } else if (result) {
+                  result.password = newpassword;
 
-router.get("/activate", (req, res) => {});
+                  req.session.user = result;
+                  let userCookie = req.cookies.user;
+                  if (userCookie === undefined) {
+                    res.cookie("user", result, {
+                      maxAge: 900000,
+                      httpOnly: true
+                    });
+                  }
+                  res.redirect("/update");
+                }
+              }
+            );
+          }
+        } else if (!doc) {
+          console.log(doc);
+          res.send("user not found");
+        }
+      });
+    });
+  }
+});
 router.get("/activetest", (req, res) => {
   let data = req.query.data;
   let textParts = data.split(":");
