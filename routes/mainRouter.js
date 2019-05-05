@@ -394,7 +394,7 @@ router.post("/signup", (req, res) => {
                 subject: "Requested User Created",
                 html: `<html><body><p>${a1} && ${
                   result[1]
-                }</p><a href='http://127.0.0.1:2000/activate?id=${a1}&key=${
+                }</p><a href='http://${req.get("host")}/activate?id=${a1}&key=${
                   result[1]
                 }'>Link</a></body></html>`
               };
