@@ -1,6 +1,6 @@
 <form action="/resetInactive?key={{key}}" method="POST">
     <input type="text" name="username" value='{{username}}' class="form-control">
-    <input type="password" name="newpassword" class="form-control" placeholder="Enter New Password">
+    <input type="password" name="newpassword" class="form-control" placeholder="Enter New Password" required>
     <input type="submit" value="Reset Password" class="btn btn-primary btn-block">
     <p>{{msg}}</p>
 </form>
