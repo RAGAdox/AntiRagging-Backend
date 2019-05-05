@@ -113,18 +113,128 @@ router.post("/login", (req, res, next) => {
     }
   });
 });
+function encryptText(text) {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(IV_LENGTH, (err, buf) => {
+      if (err) {
+        return reject(err);
+      } else {
+        let cipher = crypto.createCipheriv(
+          "aes-256-cbc",
+          new Buffer.from(ENCRYPTION_KEY),
+          buf
+        );
+        let enText = cipher.update(text);
+        enText = Buffer.concat([enText, cipher.final()]);
+        let encryptedText = buf.toString("hex") + ":" + enText.toString("hex");
+        return resolve(encryptedText);
+      }
+    });
+  });
+}
+function decryptText(text) {
+  return new Promise((resolve, reject) => {
+    try {
+      let textParts = text.split(":");
+      let iv = new Buffer(textParts.shift(), "hex");
+      let encryptedText = new Buffer(textParts.join(":"), "hex");
+      let decipher = crypto.createDecipheriv(
+        "aes-256-cbc",
+        new Buffer.from(ENCRYPTION_KEY),
+        iv
+      );
+      let decrypted = decipher.update(encryptedText);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      return resolve(decrypted.toString());
+    } catch (e) {
+      return reject(e);
+    }
+  });
+}
 router.get("/activate", (req, res) => {
-  let iv = crypto.randomBytes(IV_LENGTH);
-  let cipher = crypto.createCipheriv(
-    "aes-256-cbc",
-    new Buffer.from(ENCRYPTION_KEY),
-    iv
-  );
-  let encrypted = cipher.update("rishirishi882@gmail.com");
+  if (req.query.id != "" && req.query.key != "") {
+    let enUsername = req.query.id;
+    let enPassword = req.query.key;
+    let p1 = decryptText(enUsername);
+    let p2 = decryptText(enPassword);
+    Promise.all([p1, p2]).then(result => {
+      let username = result[0];
+      let password = result[1];
+      userDB.findOne({ username: username }, (err, doc) => {
+        if (err) {
+          res.status(400).send("Database Error Occured" + err);
+        } else if (doc) {
+          if (!doc.comparePassword(password, doc.password)) {
+            res.send(400).send("BAD URL");
+          } else {
+            res.render("resetInactive", {
+              username: doc.username,
+              key: enPassword
+            });
+          }
+        } else {
+          res.status(400).send("BAD URL");
+        }
+      });
+      //res.send(result[0] + "&&" + result[1]);
+    });
+  } else {
+    res.status(400).send("BAD URL");
+  }
+});
+router.post("/resetInactive", (req, res) => {
+  if (req.query.key != "") {
+    let enPassword = req.query.key;
+    let p1 = decryptText(enPassword);
+    var username = req.body.username;
+    let newPWD = req.body.newpassword;
+    Promise.all([p1]).then(result => {
+      let oldPassword = result[0];
+      console.log("Old Password " + oldPassword);
+      console.log("Username " + username);
+      console.log("new Password", newPWD);
+      userDB.findOne({ username: username }, (err, doc) => {
+        if (err) {
+          res.send("Some error occured");
+        } else if (doc) {
+          if (doc.comparePassword(oldPassword, doc.password)) {
+            console.log("Old Password is correct");
+            var newpassword = doc.hashPassword(newPWD);
+            userDB.findOneAndUpdate(
+              { username: username },
+              { password: newpassword },
+              (err, result) => {
+                if (err) {
+                  res.render("reset", {
+                    msg: "PASSWORD RESET UNSUCCESSFULL"
+                  });
+                } else if (!result) {
+                  res.render("reset", {
+                    msg: "PASSWORD RESET UNSUCCESSFULL"
+                  });
+                } else if (result) {
+                  result.password = newpassword;
 
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  res.status(200).send(iv.toString("hex") + ":" + encrypted.toString("hex"));
-  //console.log(iv.toString("hex") + ":" + encrypted.toString("hex"));
+                  req.session.user = result;
+                  let userCookie = req.cookies.user;
+                  if (userCookie === undefined) {
+                    res.cookie("user", result, {
+                      maxAge: 900000,
+                      httpOnly: true
+                    });
+                  }
+                  res.redirect("/update");
+                }
+              }
+            );
+          }
+        } else if (!doc) {
+          console.log(doc);
+          res.send("user not found");
+        }
+      });
+    });
+  }
 });
 router.get("/activetest", (req, res) => {
   let data = req.query.data;
@@ -189,16 +299,37 @@ router.get("/signup", sessionChecker, (req, res) => {
     res.render("signup");
   }
 });
-router.post("/signup", sessionChecker, (req, res) => {
+router.post("/signup", (req, res) => {
   var username = req.body.username,
     email = req.body.email,
-    password = req.body.password,
     staffStatus = true,
     collegeName = req.body.collegeName,
     presentAddress = req.body.presentAddress,
     name = req.body.name,
     superUser = false,
     phoneNumber = req.body.phoneNumber;
+  var chars = [
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+    "0123456789",
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  ];
+  var randPwd = [5, 3, 2]
+    .map(function(len, i) {
+      return Array(len)
+        .fill(chars[i])
+        .map(function(x) {
+          return x[Math.floor(Math.random() * x.length)];
+        })
+        .join("");
+    })
+    .concat()
+    .join("")
+    .split("")
+    .sort(function() {
+      return 0.5 - Math.random();
+    })
+    .join("");
+  console.log(randPwd);
   userDB.findOne({ username: username }, (err, doc) => {
     if (err) {
       res.render("signup", {
@@ -218,12 +349,13 @@ router.post("/signup", sessionChecker, (req, res) => {
           (newUser.username = username);
         newUser.email = email;
         newUser.staffStatus = staffStatus;
-        newUser.password = newUser.hashPassword(password);
+        newUser.password = newUser.hashPassword(randPwd);
         newUser.collegeName = collegeName;
         newUser.presentAddress = presentAddress;
         newUser.phoneNumber = phoneNumber;
         newUser.name = name;
         newUser.superUser = superUser || false;
+        newUser.activated = false;
         newUser.save(function(err, user) {
           if (err)
             res.status(500).json({
@@ -238,6 +370,58 @@ router.post("/signup", sessionChecker, (req, res) => {
               user: user,
               message: "Signed Up Successfully"
             });
+            var transporter = nodemailer.createTransport({
+              host: "smtp.gmail.com",
+              port: 465,
+              secure: true,
+              auth: {
+                user: "antiragging.kgec.19@gmail.com",
+                pass: "Rishi@1997"
+              }
+            });
+            credentials = {
+              username: "",
+              password: ""
+            };
+            let p1 = encryptText(username);
+            let p2 = encryptText(randPwd);
+
+            Promise.all([p1, p2]).then(result => {
+              var a1 = result[0];
+              let mailOptions = {
+                from: '"AntiRagging KGEC" <antiragging@kgec.edu.in>',
+                to: email,
+                subject: "Requested User Created",
+                html: `<html><body><p>${a1} && ${
+                  result[1]
+                }</p><a href='http://${req.get("host")}/activate?id=${a1}&key=${
+                  result[1]
+                }'>Link</a></body></html>`
+              };
+
+              let info = transporter.sendMail(mailOptions).then(() => {
+                console.log("Message sent: %s", info.messageId);
+                console.log(
+                  "<html><body><h1>" +
+                    username +
+                    " " +
+                    randPwd +
+                    "</h1>" +
+                    "<p>" +
+                    +result[0] +
+                    "&" +
+                    result[1] +
+                    "</p></body></html>"
+                );
+                console.log(
+                  "Preview URL: %s",
+                  nodemailer.getTestMessageUrl(info)
+                );
+              });
+            });
+
+            //console.log(, enPassword.toString("hex"));
+            //res.status(200).send(iv.toString("hex") + ":" + encrypted.toString("hex"));
           }
         });
       }
@@ -247,6 +431,7 @@ router.post("/signup", sessionChecker, (req, res) => {
 
 router.get("/complaints", sessionChecker, (req, res) => {
   //console.log(req);
+
   complaintsDB
     .find()
     .exec()
@@ -257,6 +442,7 @@ router.get("/complaints", sessionChecker, (req, res) => {
         curURL: req.protocol + "://" + req.get("host")
       });
     });
+  //else res.send("Current User Not Authorized");
 });
 router.get("/resetpassword", sessionChecker, (req, res) => {
   res.render("reset");
@@ -322,28 +508,29 @@ router.post("/statusUpdate", sessionChecker, (req, res) => {
 router.get("/update", sessionChecker, (req, res) => {
   if (req.session.user)
     res.render("update", {
-      user: req.session.user
+      user: req.session.user,
+      needLogin: false
     });
   else
     res.render("update", {
-      user: req.cookies.user
+      user: req.cookies.user,
+      needLogin: false
     });
 });
 router.post("/update", sessionChecker, (req, res) => {
   let username = "";
   if (req.session.user) username = req.session.user.username;
-  else username = req.session.user.username;
-  let email = req.body.email,
-    collegeName = req.body.collegeName;
+  else username = req.cookies.user.username;
+  let collegeName = req.body.collegeName;
   presentAddress = req.body.presentAddress;
   (phoneNumber = req.body.phoneNumber),
     userDB.findOneAndUpdate(
       { username: username },
       {
-        email: email,
         collegeName: collegeName,
         presentAddress: presentAddress,
-        phoneNumber: phoneNumber
+        phoneNumber: phoneNumber,
+        activated: true
       },
       (err, doc) => {
         if (doc) {
@@ -353,7 +540,8 @@ router.post("/update", sessionChecker, (req, res) => {
             console.log("Logged out");
           }
           res.render("update", {
-            message: "Profile Updation Successfull"
+            message: "Profile Updation Successfull",
+            needLogin: true
           });
         } else {
           res.send("Some Error Occured");
