@@ -140,17 +140,21 @@ module.exports = function(passport) {
   router.get("/members", token.checkToken, (req, res, next) => {
     let superUser = [],
       staffUsers = [];
+    console.log("users \n =>");
     userDB
       .find({}, (err, doc) => {
         if (doc) {
           let l = doc.length,
             i = 0;
           doc.forEach(user => {
+            console.log(user);
             i++;
-            if (user.staffStatus == true && user.superUser == false)
-              staffUsers.push(user);
-            else if (user.superUser == true) superUser.push(user);
-            if (i == l - 1) {
+            if (user.activated == true) {
+              if (user.staffStatus == true && user.superUser == false)
+                staffUsers.push(user);
+              else if (user.superUser == true) superUser.push(user);
+            }
+            if (i == l) {
               res.json({
                 success: true,
                 staffUsers: staffUsers,
